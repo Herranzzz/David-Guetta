@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>David Guetta: La Leyenda Electrónica</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: url('https://cdn.wegow.com/media/artists/david-guetta/david-guetta-1502274705.91.jpg') no-repeat center center fixed;
+      background-size: cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    h1 {
+      font-size: 50px;
+      text-shadow: 2px 2px 10px #ff0080;
+      background-color: rgba(0, 0, 0, 0.6); /* Fondo para el título */
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+
+    canvas {
+      border: 3px solid #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #ff0080;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #ff0080;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: 0 0 10px #ff0080;
+    }
+
+    button:hover {
+      background: #ff66b2;
+    }
+
+    h2 {
+      font-size: 24px;
+      text-shadow: 2px 2px 5px #ff0080;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>David Guetta: La Leyenda Electrónica</h1>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <h2 id="level">Nivel: 1</h2>
+    <h2 id="score">Puntuación: 0</h2>
+    <button id="startButton">Iniciar</button>
+    <audio id="backgroundMusic" loop>
+      <!-- Reemplaza este archivo con una canción de David Guetta -->
+      <source src="https://www.bensound.com/bensound-music/bensound-dubstep.mp3" type="audio/mpeg">
+      Tu navegador no soporta audio HTML5.
+    </audio>
+  </div>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const levelDisplay = document.getElementById('level');
+    const scoreDisplay = document.getElementById('score');
+    const startButton = document.getElementById('startButton');
+    const backgroundMusic = document.getElementById('backgroundMusic');
+
+    let isPlaying = false;
+    let score = 0;
+    let level = 1;
+    let player = { x: 350, y: 350, width: 100, height: 20, color: '#ff0080' };
+    let beats = [];
+    let beatSpeed = 3; // Velocidad de los beats
+    let gameInterval;
+
+    // Iniciar juego
+    function startGame() {
+      score = 0;
+      level = 1;
+      beats = [];
+      beatSpeed = 3;
+      isPlaying = true;
+      scoreDisplay.innerText = `Puntuación: ${score}`;
+      levelDisplay.innerText = `Nivel: ${level}`;
+      backgroundMusic.play();
+      gameInterval = setInterval(updateGame, 20);
+      startButton.style.display = 'none';
+    }
+
+    // Dibujar jugador
+    function drawPlayer() {
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    // Dibujar beats
+    function drawBeats() {
+      beats.forEach((beat) => {
+        ctx.fillStyle = 'white';
+        ctx.beginPath();
+        ctx.arc(beat.x, beat.y, beat.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+      });
+    }
+
+    // Crear nuevo beat
+    function createBeat() {
+      const beat = { x: Math.random() * canvas.width, y: 0, radius: 10 };
+      beats.push(beat);
+    }
+
+    // Mover beats
+    function moveBeats() {
+      beats.forEach((beat) => {
+        beat.y += beatSpeed;
+      });
+
+      // Verificar colisiones
+      beats.forEach((beat, index) => {
+        if (
+          beat.y + beat.radius > player.y &&
+          beat.x > player.x &&
+          beat.x < player.x + player.width
+        ) {
+          beats.splice(index, 1);
+          score++;
+          scoreDisplay.innerText = `Puntuación: ${score}`;
+          if (score % 5 === 0) nextLevel(); // Cambiado para que suba de nivel cada 5 puntos
+        } else if (beat.y > canvas.height) {
+          gameOver();
+        }
+      });
+    }
+
+    // Subir de nivel
+    function nextLevel() {
+      level++;
+      levelDisplay.innerText = `Nivel: ${level}`;
+      beatSpeed += 1;
+    }
+
+    // Finalizar juego
+    function gameOver() {
+      clearInterval(gameInterval);
+      isPlaying = false;
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
+      alert('¡Has perdido! Inténtalo de nuevo.');
+      startButton.style.display = 'block';
+    }
+
+    // Actualizar juego
+    function updateGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawPlayer();
+      drawBeats();
+      moveBeats();
+    }
+
+    // Mover jugador con el ratón
+    canvas.addEventListener('mousemove', (e) => {
+      if (isPlaying) {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        player.x = Math.min(Math.max(mouseX - player.width / 2, 0), canvas.width - player.width);
+      }
+    });
+
+    // Crear beats en intervalos
+    setInterval(() => {
+      if (isPlaying) createBeat();
+    }, 1000);
+
+    // Botón de inicio
+    startButton.addEventListener('click', startGame);
+  </script>
+</body>
+</html>
